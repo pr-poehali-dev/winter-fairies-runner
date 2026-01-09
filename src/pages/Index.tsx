@@ -27,7 +27,8 @@ const Index = () => {
     score: 0,
     animationFrame: 0,
     runFrame: 0,
-    playerImage: null as HTMLImageElement | null
+    playerImage: null as HTMLImageElement | null,
+    playerJumpImage: null as HTMLImageElement | null
   });
 
   const playSound = (type: 'jump' | 'hit' | 'music') => {
@@ -90,7 +91,12 @@ const Index = () => {
     game.runFrame += 0.15;
     const bobOffset = game.player.isJumping ? 0 : Math.sin(game.runFrame) * 5;
     
-    if (game.playerImage && game.playerImage.complete) {
+    // Выбираем правильное изображение в зависимости от состояния
+    const currentImage = game.player.isJumping && game.playerJumpImage && game.playerJumpImage.complete
+      ? game.playerJumpImage
+      : game.playerImage;
+    
+    if (currentImage && currentImage.complete) {
       // Рисуем изображение феи с небольшим покачиванием
       ctx.save();
       ctx.translate(x + width/2, playerY + height/2 + bobOffset);
@@ -100,7 +106,7 @@ const Index = () => {
         ctx.rotate(Math.sin(game.runFrame) * 0.05);
       }
       
-      ctx.drawImage(game.playerImage, -width/2, -height/2, width, height);
+      ctx.drawImage(currentImage, -width/2, -height/2, width, height);
       ctx.restore();
       
       // Добавляем магический эффект - звёздочки вокруг феи
@@ -307,11 +313,18 @@ const Index = () => {
   }, [gameState]);
 
   useEffect(() => {
-    // Загрузка изображения феи
+    // Загрузка изображения феи для бега
     const img = new Image();
     img.src = 'https://cdn.poehali.dev/files/ChatGPT Image 9 янв. 2026 г., 16_44_30.png';
     img.onload = () => {
       gameRef.current.playerImage = img;
+    };
+    
+    // Загрузка изображения феи для прыжка
+    const imgJump = new Image();
+    imgJump.src = 'https://cdn.poehali.dev/files/ChatGPT Image 9 янв. 2026 г., 16_52_16.png';
+    imgJump.onload = () => {
+      gameRef.current.playerJumpImage = imgJump;
     };
   }, []);
 
