@@ -16,7 +16,7 @@ const Index = () => {
   const [highScore, setHighScore] = useState(0);
   
   const gameRef = useRef({
-    player: { x: 100, y: 0, width: 50, height: 60, velocityY: 0, isJumping: false },
+    player: { x: 100, y: 0, width: 80, height: 100, velocityY: 0, isJumping: false },
     obstacles: [] as Obstacle[],
     groundY: 400,
     gravity: 0.6,
@@ -26,7 +26,8 @@ const Index = () => {
     obstacleInterval: 80,
     score: 0,
     animationFrame: 0,
-    runFrame: 0
+    runFrame: 0,
+    playerImage: null as HTMLImageElement | null
   });
 
   const playSound = (type: 'jump' | 'hit' | 'music') => {
@@ -87,49 +88,38 @@ const Index = () => {
     
     // Анимация бега
     game.runFrame += 0.15;
-    const bobOffset = game.player.isJumping ? 0 : Math.sin(game.runFrame) * 3;
+    const bobOffset = game.player.isJumping ? 0 : Math.sin(game.runFrame) * 5;
     
-    // Тело феи (платье)
-    ctx.fillStyle = '#E5DEFF';
-    ctx.beginPath();
-    ctx.ellipse(x + width/2, playerY + height * 0.6, width * 0.4, height * 0.4, 0, 0, Math.PI * 2);
-    ctx.fill();
-    
-    // Голова
-    ctx.fillStyle = '#FFE4C4';
-    ctx.beginPath();
-    ctx.arc(x + width/2, playerY + height * 0.25 + bobOffset, width * 0.25, 0, Math.PI * 2);
-    ctx.fill();
-    
-    // Волосы
-    ctx.fillStyle = '#D6BCFA';
-    ctx.beginPath();
-    ctx.arc(x + width/2 - 5, playerY + height * 0.2 + bobOffset, width * 0.22, 0, Math.PI * 2);
-    ctx.arc(x + width/2 + 5, playerY + height * 0.2 + bobOffset, width * 0.22, 0, Math.PI * 2);
-    ctx.fill();
-    
-    // Крылья
-    ctx.fillStyle = 'rgba(155, 135, 245, 0.3)';
-    ctx.beginPath();
-    ctx.ellipse(x + width * 0.2, playerY + height * 0.5, width * 0.25, height * 0.3, -0.3, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.beginPath();
-    ctx.ellipse(x + width * 0.8, playerY + height * 0.5, width * 0.25, height * 0.3, 0.3, 0, Math.PI * 2);
-    ctx.fill();
-    
-    // Глаза
-    ctx.fillStyle = '#000';
-    ctx.beginPath();
-    ctx.arc(x + width/2 - 6, playerY + height * 0.24 + bobOffset, 2, 0, Math.PI * 2);
-    ctx.arc(x + width/2 + 6, playerY + height * 0.24 + bobOffset, 2, 0, Math.PI * 2);
-    ctx.fill();
-    
-    // Улыбка
-    ctx.strokeStyle = '#000';
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.arc(x + width/2, playerY + height * 0.28 + bobOffset, 6, 0, Math.PI);
-    ctx.stroke();
+    if (game.playerImage && game.playerImage.complete) {
+      // Рисуем изображение феи с небольшим покачиванием
+      ctx.save();
+      ctx.translate(x + width/2, playerY + height/2 + bobOffset);
+      
+      // Добавляем легкий наклон при беге
+      if (!game.player.isJumping) {
+        ctx.rotate(Math.sin(game.runFrame) * 0.05);
+      }
+      
+      ctx.drawImage(game.playerImage, -width/2, -height/2, width, height);
+      ctx.restore();
+      
+      // Добавляем магический эффект - звёздочки вокруг феи
+      if (!game.player.isJumping) {
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+        for (let i = 0; i < 3; i++) {
+          const angle = game.runFrame * 2 + (i * Math.PI * 2 / 3);
+          const sparkleX = x + width/2 + Math.cos(angle) * 40;
+          const sparkleY = playerY + height/2 + bobOffset + Math.sin(angle) * 30;
+          ctx.beginPath();
+          ctx.arc(sparkleX, sparkleY, 2, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+    } else {
+      // Fallback если изображение не загрузилось
+      ctx.fillStyle = '#E5DEFF';
+      ctx.fillRect(x, playerY, width, height);
+    }
   };
 
   const drawObstacle = (ctx: CanvasRenderingContext2D, obstacle: Obstacle, game: any) => {
@@ -315,6 +305,15 @@ const Index = () => {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [gameState]);
+
+  useEffect(() => {
+    // Загрузка изображения феи
+    const img = new Image();
+    img.src = 'https://cdn.poehali.dev/files/ChatGPT Image 9 янв. 2026 г., 16_44_30.png';
+    img.onload = () => {
+      gameRef.current.playerImage = img;
+    };
+  }, []);
 
   useEffect(() => {
     let animationId: number;
