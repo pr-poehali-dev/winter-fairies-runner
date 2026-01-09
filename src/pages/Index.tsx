@@ -240,7 +240,7 @@ const Index = () => {
     
     // Физика игрока
     game.player.velocityY += game.gravity;
-    game.player.y += game.player.velocityY;
+    game.player.y -= game.player.velocityY;
     
     if (game.player.y <= 0) {
       game.player.y = 0;
