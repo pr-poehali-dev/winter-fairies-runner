@@ -315,7 +315,7 @@ const Index = () => {
   useEffect(() => {
     // Загрузка изображения феи (используется и для бега, и для прыжка)
     const img = new Image();
-    img.src = 'https://cdn.poehali.dev/projects/562adef4-79e7-498f-ad7e-2cd420fbf791/files/7f8e63ae-ec49-42c5-8c6b-e093f9be3c2a.jpg';
+    img.src = 'https://cdn.poehali.dev/files/IMG_0432.png';
     img.onload = () => {
       gameRef.current.playerImage = img;
       gameRef.current.playerJumpImage = img;
