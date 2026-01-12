@@ -313,18 +313,12 @@ const Index = () => {
   }, [gameState]);
 
   useEffect(() => {
-    // Загрузка изображения феи для бега
+    // Загрузка изображения феи (используется и для бега, и для прыжка)
     const img = new Image();
-    img.src = 'https://cdn.poehali.dev/files/ChatGPT Image 9 янв. 2026 г., 16_44_30.png';
+    img.src = 'https://cdn.poehali.dev/files/IMG_0429.jpeg';
     img.onload = () => {
       gameRef.current.playerImage = img;
-    };
-    
-    // Загрузка изображения феи для прыжка
-    const imgJump = new Image();
-    imgJump.src = 'https://cdn.poehali.dev/files/ChatGPT Image 9 янв. 2026 г., 16_52_16.png';
-    imgJump.onload = () => {
-      gameRef.current.playerJumpImage = imgJump;
+      gameRef.current.playerJumpImage = img;
     };
   }, []);
 
