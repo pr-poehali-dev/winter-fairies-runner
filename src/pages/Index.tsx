@@ -323,6 +323,27 @@ const Index = () => {
   }, []);
 
   useEffect(() => {
+    const resizeCanvas = () => {
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+      
+      const isMobile = window.innerWidth < 768;
+      const canvasWidth = isMobile ? Math.min(window.innerWidth - 32, 600) : 800;
+      const canvasHeight = isMobile ? Math.min(window.innerHeight * 0.6, 400) : 500;
+      
+      canvas.width = canvasWidth;
+      canvas.height = canvasHeight;
+      
+      gameRef.current.groundY = canvasHeight - 100;
+    };
+    
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+    
+    return () => window.removeEventListener('resize', resizeCanvas);
+  }, []);
+
+  useEffect(() => {
     let animationId: number;
     
     if (gameState === 'playing') {
@@ -339,30 +360,32 @@ const Index = () => {
   }, [gameState]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-100 via-purple-50 to-purple-100">
-      <div className="relative">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-100 via-purple-50 to-purple-100 p-4">
+      <div className="relative w-full max-w-4xl">
         <canvas
           ref={canvasRef}
-          width={800}
-          height={500}
-          className="border-4 border-white rounded-2xl shadow-2xl"
+          className="border-4 border-white rounded-2xl shadow-2xl w-full h-auto touch-none"
           onClick={() => gameState === 'playing' && handleJump()}
+          onTouchStart={(e) => {
+            e.preventDefault();
+            if (gameState === 'playing') handleJump();
+          }}
         />
         
         {gameState === 'menu' && (
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/90 backdrop-blur-sm rounded-2xl">
-            <div className="text-center space-y-6 p-8">
-              <h1 className="text-6xl font-bold text-purple-600 mb-4" style={{ fontFamily: 'Montserrat, sans-serif' }}>
+            <div className="text-center space-y-4 md:space-y-6 p-4 md:p-8">
+              <h1 className="text-4xl md:text-6xl font-bold text-purple-600 mb-4" style={{ fontFamily: 'Montserrat, sans-serif' }}>
                 Зимний Раннер ❄️
               </h1>
-              <div className="text-lg text-gray-700 space-y-2" style={{ fontFamily: 'Rubik, sans-serif' }}>
+              <div className="text-base md:text-lg text-gray-700 space-y-2" style={{ fontFamily: 'Rubik, sans-serif' }}>
                 <p className="flex items-center justify-center gap-2">
                   <Icon name="Sparkles" size={20} className="text-purple-500" />
                   Помоги фее Кире перепрыгнуть сугробы!
                 </p>
                 <p className="flex items-center justify-center gap-2">
-                  <Icon name="Space" size={20} className="text-purple-500" />
-                  Нажми SPACE для прыжка
+                  <Icon name="MousePointer" size={20} className="text-purple-500" />
+                  Нажми на экран или SPACE для прыжка
                 </p>
                 <p className="flex items-center justify-center gap-2">
                   <Icon name="Trophy" size={20} className="text-purple-500" />
@@ -388,11 +411,11 @@ const Index = () => {
         
         {gameState === 'gameover' && (
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/70 backdrop-blur-sm rounded-2xl">
-            <div className="text-center space-y-6 p-8">
-              <h2 className="text-5xl font-bold text-white mb-4" style={{ fontFamily: 'Montserrat, sans-serif' }}>
+            <div className="text-center space-y-4 md:space-y-6 p-4 md:p-8">
+              <h2 className="text-3xl md:text-5xl font-bold text-white mb-4" style={{ fontFamily: 'Montserrat, sans-serif' }}>
                 Game Over!
               </h2>
-              <p className="text-3xl text-purple-300">
+              <p className="text-2xl md:text-3xl text-purple-300">
                 Очки: {score}
               </p>
               {score >= highScore && score > 0 && (
