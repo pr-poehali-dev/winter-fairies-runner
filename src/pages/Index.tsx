@@ -44,7 +44,7 @@ const Index = () => {
     playerJumpImage: null as HTMLImageElement | null
   });
 
-  const playSound = (type: 'jump' | 'hit' | 'music') => {
+  const playSound = (type: 'jump' | 'hit' | 'collect') => {
     // Звуковые эффекты через Web Audio API
     const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
     const oscillator = audioContext.createOscillator();
@@ -67,6 +67,27 @@ const Index = () => {
       gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
       oscillator.start();
       oscillator.stop(audioContext.currentTime + 0.3);
+    } else if (type === 'collect') {
+      oscillator.frequency.value = 800;
+      oscillator.type = 'sine';
+      gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.15);
+      oscillator.start();
+      oscillator.stop(audioContext.currentTime + 0.15);
+      
+      // Второй звук для эффекта "динь"
+      setTimeout(() => {
+        const osc2 = audioContext.createOscillator();
+        const gain2 = audioContext.createGain();
+        osc2.connect(gain2);
+        gain2.connect(audioContext.destination);
+        osc2.frequency.value = 1000;
+        osc2.type = 'sine';
+        gain2.gain.setValueAtTime(0.2, audioContext.currentTime);
+        gain2.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+        osc2.start();
+        osc2.stop(audioContext.currentTime + 0.1);
+      }, 50);
     }
   };
 
@@ -411,6 +432,7 @@ const Index = () => {
         collectible.collected = true;
         game.gifts++;
         setGifts(game.gifts);
+        playSound('collect');
         return false;
       }
       
@@ -598,21 +620,32 @@ const Index = () => {
         )}
         
         {gameState === 'gameover' && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/70 backdrop-blur-sm rounded-2xl">
-            <div className="text-center space-y-4 md:space-y-6 p-4 md:p-8">
-              <h2 className="text-3xl md:text-5xl font-bold text-white mb-4" style={{ fontFamily: 'Montserrat, sans-serif' }}>
+          <div 
+            className="absolute inset-0 flex flex-col items-center justify-center bg-black/70 backdrop-blur-sm rounded-2xl"
+            style={{
+              backgroundImage: 'url(https://cdn.poehali.dev/files/IMG_0433.png)',
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+              backgroundBlendMode: 'overlay'
+            }}
+          >
+            <div className="text-center space-y-4 md:space-y-6 p-4 md:p-8 bg-white/80 backdrop-blur-md rounded-3xl shadow-2xl">
+              <h2 className="text-3xl md:text-5xl font-bold text-purple-700 mb-4" style={{ fontFamily: 'Montserrat, sans-serif' }}>
                 Game Over!
               </h2>
-              <p className="text-2xl md:text-3xl text-purple-300">
+              <p className="text-2xl md:text-3xl text-purple-600 font-bold">
                 Очки: {score}
               </p>
+              <p className="text-xl md:text-2xl text-pink-600 font-semibold">
+                🎁 Подарков: {gifts}
+              </p>
               {score >= highScore && score > 0 && (
-                <p className="text-2xl text-yellow-300 animate-pulse">
+                <p className="text-2xl text-yellow-600 animate-pulse font-bold">
                   🎉 Новый рекорд!
                 </p>
               )}
               {highScore > 0 && score < highScore && (
-                <p className="text-xl text-purple-200">
+                <p className="text-xl text-purple-500">
                   Рекорд: {highScore}
                 </p>
               )}
@@ -624,7 +657,7 @@ const Index = () => {
                 <Icon name="RotateCcw" size={24} className="mr-2" />
                 Играть снова
               </Button>
-              <p className="text-sm text-gray-300 mt-4">
+              <p className="text-sm text-gray-600 mt-4">
                 Нажми SPACE для рестарта
               </p>
             </div>
