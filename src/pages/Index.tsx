@@ -6,7 +6,15 @@ interface Obstacle {
   x: number;
   width: number;
   height: number;
-  type: 'snowbank' | 'snowball';
+  type: 'snowbank' | 'snowball' | 'snowman' | 'tree' | 'deer';
+}
+
+interface Collectible {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  collected: boolean;
 }
 
 const Index = () => {
@@ -14,17 +22,22 @@ const Index = () => {
   const [gameState, setGameState] = useState<'menu' | 'playing' | 'gameover'>('menu');
   const [score, setScore] = useState(0);
   const [highScore, setHighScore] = useState(0);
+  const [gifts, setGifts] = useState(0);
   
   const gameRef = useRef({
     player: { x: 100, y: 0, width: 80, height: 100, velocityY: 0, isJumping: false },
     obstacles: [] as Obstacle[],
-    groundY: 400,
+    collectibles: [] as Collectible[],
+    groundY: 480,
     gravity: 0.6,
     jumpForce: -13,
     gameSpeed: 6,
     obstacleTimer: 0,
     obstacleInterval: 80,
+    collectibleTimer: 0,
+    collectibleInterval: 150,
     score: 0,
+    gifts: 0,
     animationFrame: 0,
     runFrame: 0,
     playerImage: null as HTMLImageElement | null,
@@ -72,10 +85,14 @@ const Index = () => {
     game.player.velocityY = 0;
     game.player.isJumping = false;
     game.obstacles = [];
+    game.collectibles = [];
     game.obstacleTimer = 0;
+    game.collectibleTimer = 0;
     game.score = 0;
+    game.gifts = 0;
     game.gameSpeed = 6;
     setScore(0);
+    setGifts(0);
   };
 
   const startGame = () => {
@@ -155,7 +172,7 @@ const Index = () => {
       ctx.ellipse(obstacle.x + obstacle.width/2, game.groundY, 
                   obstacle.width * 0.4, obstacle.height * 0.1, 0, 0, Math.PI * 2);
       ctx.fill();
-    } else {
+    } else if (obstacle.type === 'snowball') {
       // Снежок
       ctx.fillStyle = '#FFFFFF';
       ctx.beginPath();
@@ -167,6 +184,73 @@ const Index = () => {
       ctx.beginPath();
       ctx.arc(obstacle.x + obstacle.width/2 - 5, obstacleY + obstacle.height/2 - 5, obstacle.width/4, 0, Math.PI * 2);
       ctx.fill();
+    } else if (obstacle.type === 'snowman') {
+      // Снеговик
+      ctx.fillStyle = '#FFFFFF';
+      // Нижний шар
+      ctx.beginPath();
+      ctx.arc(obstacle.x + obstacle.width/2, obstacleY + obstacle.height * 0.75, obstacle.width * 0.35, 0, Math.PI * 2);
+      ctx.fill();
+      // Средний шар
+      ctx.beginPath();
+      ctx.arc(obstacle.x + obstacle.width/2, obstacleY + obstacle.height * 0.45, obstacle.width * 0.28, 0, Math.PI * 2);
+      ctx.fill();
+      // Голова
+      ctx.beginPath();
+      ctx.arc(obstacle.x + obstacle.width/2, obstacleY + obstacle.height * 0.2, obstacle.width * 0.22, 0, Math.PI * 2);
+      ctx.fill();
+      // Нос-морковка
+      ctx.fillStyle = '#FFA500';
+      ctx.beginPath();
+      ctx.moveTo(obstacle.x + obstacle.width/2, obstacleY + obstacle.height * 0.2);
+      ctx.lineTo(obstacle.x + obstacle.width/2 + 15, obstacleY + obstacle.height * 0.2);
+      ctx.lineTo(obstacle.x + obstacle.width/2, obstacleY + obstacle.height * 0.23);
+      ctx.fill();
+      // Глаза
+      ctx.fillStyle = '#000000';
+      ctx.beginPath();
+      ctx.arc(obstacle.x + obstacle.width/2 - 6, obstacleY + obstacle.height * 0.17, 2, 0, Math.PI * 2);
+      ctx.arc(obstacle.x + obstacle.width/2 + 6, obstacleY + obstacle.height * 0.17, 2, 0, Math.PI * 2);
+      ctx.fill();
+    } else if (obstacle.type === 'tree') {
+      // Ёлка
+      // Ствол
+      ctx.fillStyle = '#8B4513';
+      ctx.fillRect(obstacle.x + obstacle.width * 0.4, obstacleY + obstacle.height * 0.7, obstacle.width * 0.2, obstacle.height * 0.3);
+      // Крона (треугольники)
+      ctx.fillStyle = '#228B22';
+      for (let i = 0; i < 3; i++) {
+        ctx.beginPath();
+        const yPos = obstacleY + obstacle.height * (0.2 + i * 0.2);
+        const size = obstacle.width * (0.5 + i * 0.15);
+        ctx.moveTo(obstacle.x + obstacle.width/2, obstacleY + obstacle.height * (0.1 + i * 0.15));
+        ctx.lineTo(obstacle.x + obstacle.width/2 - size/2, yPos);
+        ctx.lineTo(obstacle.x + obstacle.width/2 + size/2, yPos);
+        ctx.closePath();
+        ctx.fill();
+      }
+    } else if (obstacle.type === 'deer') {
+      // Олень
+      // Тело
+      ctx.fillStyle = '#8B4513';
+      ctx.fillRect(obstacle.x + obstacle.width * 0.3, obstacleY + obstacle.height * 0.4, obstacle.width * 0.4, obstacle.height * 0.35);
+      // Ноги
+      ctx.fillRect(obstacle.x + obstacle.width * 0.32, obstacleY + obstacle.height * 0.75, obstacle.width * 0.08, obstacle.height * 0.25);
+      ctx.fillRect(obstacle.x + obstacle.width * 0.6, obstacleY + obstacle.height * 0.75, obstacle.width * 0.08, obstacle.height * 0.25);
+      // Шея и голова
+      ctx.fillRect(obstacle.x + obstacle.width * 0.65, obstacleY + obstacle.height * 0.2, obstacle.width * 0.1, obstacle.height * 0.25);
+      ctx.beginPath();
+      ctx.arc(obstacle.x + obstacle.width * 0.7, obstacleY + obstacle.height * 0.2, obstacle.width * 0.12, 0, Math.PI * 2);
+      ctx.fill();
+      // Рога
+      ctx.strokeStyle = '#8B4513';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(obstacle.x + obstacle.width * 0.65, obstacleY + obstacle.height * 0.15);
+      ctx.lineTo(obstacle.x + obstacle.width * 0.6, obstacleY + obstacle.height * 0.05);
+      ctx.moveTo(obstacle.x + obstacle.width * 0.75, obstacleY + obstacle.height * 0.15);
+      ctx.lineTo(obstacle.x + obstacle.width * 0.8, obstacleY + obstacle.height * 0.05);
+      ctx.stroke();
     }
   };
 
@@ -247,22 +331,90 @@ const Index = () => {
     // Создание препятствий
     game.obstacleTimer++;
     if (game.obstacleTimer > game.obstacleInterval) {
-      const type = Math.random() > 0.5 ? 'snowbank' : 'snowball';
-      const height = type === 'snowbank' ? 30 + Math.random() * 30 : 25 + Math.random() * 15;
+      const rand = Math.random();
+      let type: Obstacle['type'];
+      let height: number;
+      let width: number;
+      
+      if (rand < 0.25) {
+        type = 'snowbank';
+        height = 40 + Math.random() * 20;
+        width = 60 + Math.random() * 20;
+      } else if (rand < 0.45) {
+        type = 'snowball';
+        height = 30;
+        width = 30;
+      } else if (rand < 0.6) {
+        type = 'snowman';
+        height = 80 + Math.random() * 20;
+        width = 50;
+      } else if (rand < 0.8) {
+        type = 'tree';
+        height = 90 + Math.random() * 30;
+        width = 60;
+      } else {
+        type = 'deer';
+        height = 70 + Math.random() * 20;
+        width = 70;
+      }
+      
       game.obstacles.push({
         x: canvas.width,
-        width: type === 'snowbank' ? 50 + Math.random() * 30 : 30,
+        width,
         height,
         type
       });
+      
       game.obstacleTimer = 0;
-      game.obstacleInterval = 60 + Math.random() * 60;
+      game.obstacleInterval = 60 + Math.random() * 40;
+    }
+    
+    // Создание подарков
+    game.collectibleTimer++;
+    if (game.collectibleTimer > game.collectibleInterval) {
+      game.collectibles.push({
+        x: canvas.width,
+        y: game.groundY - 100 - Math.random() * 150,
+        width: 30,
+        height: 30,
+        collected: false
+      });
+      
+      game.collectibleTimer = 0;
+      game.collectibleInterval = 100 + Math.random() * 100;
     }
     
     // Движение препятствий
     game.obstacles = game.obstacles.filter(obstacle => {
       obstacle.x -= game.gameSpeed;
       return obstacle.x > -obstacle.width;
+    });
+    
+    // Движение и проверка сбора подарков
+    game.collectibles = game.collectibles.filter(collectible => {
+      if (collectible.collected) return false;
+      
+      collectible.x -= game.gameSpeed;
+      
+      if (collectible.x < -collectible.width) return false;
+      
+      // Проверка сбора
+      const playerBottom = game.groundY - game.player.y;
+      const playerTop = playerBottom - game.player.height;
+      const playerLeft = game.player.x;
+      const playerRight = game.player.x + game.player.width;
+      
+      if (playerRight > collectible.x &&
+          playerLeft < collectible.x + collectible.width &&
+          playerBottom > collectible.y &&
+          playerTop < collectible.y + collectible.height) {
+        collectible.collected = true;
+        game.gifts++;
+        setGifts(game.gifts);
+        return false;
+      }
+      
+      return true;
     });
     
     // Проверка столкновений
@@ -287,6 +439,41 @@ const Index = () => {
     
     // Рисование
     game.obstacles.forEach(obstacle => drawObstacle(ctx, obstacle, game));
+    
+    // Отрисовка подарков
+    game.collectibles.forEach((collectible: Collectible) => {
+      if (!collectible.collected) {
+        // Подарок с анимацией вращения
+        ctx.save();
+        ctx.translate(collectible.x + collectible.width/2, collectible.y + collectible.height/2);
+        ctx.rotate(game.animationFrame * 0.02);
+        
+        // Коробка
+        ctx.fillStyle = '#FF4444';
+        ctx.fillRect(-collectible.width/2, -collectible.height/2, collectible.width, collectible.height);
+        
+        // Лента
+        ctx.fillStyle = '#FFD700';
+        ctx.fillRect(-collectible.width/2, -2, collectible.width, 4);
+        ctx.fillRect(-2, -collectible.height/2, 4, collectible.height);
+        
+        // Бантик
+        ctx.beginPath();
+        ctx.arc(-8, -collectible.height/2 - 3, 5, 0, Math.PI * 2);
+        ctx.arc(8, -collectible.height/2 - 3, 5, 0, Math.PI * 2);
+        ctx.fill();
+        
+        ctx.restore();
+        
+        // Сияние
+        ctx.fillStyle = 'rgba(255, 215, 0, 0.3)';
+        ctx.beginPath();
+        ctx.arc(collectible.x + collectible.width/2, collectible.y + collectible.height/2, 
+                collectible.width * 0.7 + Math.sin(game.animationFrame * 0.1) * 5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    });
+    
     drawPlayer(ctx, game);
     
     // Счёт на экране
@@ -294,6 +481,7 @@ const Index = () => {
     ctx.font = 'bold 32px Montserrat, sans-serif';
     ctx.textAlign = 'right';
     ctx.fillText(`${Math.floor(game.score)}`, canvas.width - 30, 50);
+    ctx.fillText(`🎁 ${game.gifts}`, canvas.width - 30, 85);
   };
 
   useEffect(() => {
