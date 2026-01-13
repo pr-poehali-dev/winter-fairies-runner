@@ -359,24 +359,24 @@ const Index = () => {
       
       if (rand < 0.25) {
         type = 'snowbank';
-        height = 40 + Math.random() * 20;
+        height = 25 + Math.random() * 15;
         width = 60 + Math.random() * 20;
       } else if (rand < 0.45) {
         type = 'snowball';
-        height = 30;
-        width = 30;
+        height = 25;
+        width = 25;
       } else if (rand < 0.6) {
         type = 'snowman';
-        height = 80 + Math.random() * 20;
-        width = 50;
+        height = 50 + Math.random() * 15;
+        width = 45;
       } else if (rand < 0.8) {
         type = 'tree';
-        height = 90 + Math.random() * 30;
-        width = 60;
+        height = 60 + Math.random() * 20;
+        width = 55;
       } else {
         type = 'deer';
-        height = 70 + Math.random() * 20;
-        width = 70;
+        height = 45 + Math.random() * 15;
+        width = 60;
       }
       
       game.obstacles.push({
@@ -387,7 +387,7 @@ const Index = () => {
       });
       
       game.obstacleTimer = 0;
-      game.obstacleInterval = 60 + Math.random() * 40;
+      game.obstacleInterval = 90 + Math.random() * 60;
     }
     
     // Создание подарков
